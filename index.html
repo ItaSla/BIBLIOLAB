@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BIBLIOLAB — Biblioteca & Laboratório</title>
+
+  <style>
+    :root{
+      --primary:#2e7d32; --accent:#f57c00; --bg:#fdfdfd; --card:#fff;
+      --muted:#6b7280; --shadow:rgba(16,24,40,0.08); --danger:#c62828;
+    }
+
+    /* Reset e base */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:Inter, "Segoe UI", Arial, sans-serif;
+      background:var(--bg); color:#222; padding:18px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Controle de Visibilidade das Abas (Essencial para a separação) */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Reset de aparência padrão para botões */
+    button {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* Estilo padrão dos botões da UI */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 700;
+      border: 0;
+      transition: background .18s ease, transform .06s ease;
+      text-decoration: none;
+    }
+    .btn:hover { background: #1b5e20; transform: translateY(-1px); }
+    .btn.ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid rgba(46,125,50,0.3);
+    }
+    .btn.ghost:hover { background: rgba(46,125,50,0.06); }
+    
+    header .btn.ghost {
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+    header .btn.ghost:hover { background: rgba(255,255,255,0.1); }
+
+    /* Danger / remove */
+    .remove-btn {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(198,40,40,0.12);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .remove-btn:hover { background: rgba(198,40,40,0.06); }
+
+    /* Focus states */
+    button:focus, .side-link:focus, input:focus, select:focus {
+      outline: 3px solid rgba(46,125,50,0.12);
+      outline-offset: 3px;
+    }
+
+    /* Layout e estrutura */
+    header.site-header{
+      display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:14px;
+      background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;position:relative;
+      box-shadow:0 8px 28px rgba(16,24,40,0.12);
+    }
+    .branding{display:flex;flex-direction:column;gap:6px;align-items:center}
+    .branding h1{font-size:1.9rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+    .branding p{font-size:.98rem;opacity:.95}
+    .auth-actions{position:absolute;right:18px;top:18px;display:flex;gap:8px;align-items:center}
+    .user-badge{background:rgba(255,255,255,0.12);padding:6px 10px;border-radius:8px;color:#fff;font-weight:700}
+
+    .layout{display:flex;gap:18px;margin-top:28px;align-items:flex-start}
+    
+    /* ======= SIDEBAR ESTILIZADA ======= */
+    .sidebar {
+      width: 260px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #eef4fb;
+      box-shadow: 0 6px 20px var(--shadow);
+      height: calc(100vh - 220px);
+      position: sticky;
+      top: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-x: hidden;
+      overflow-y: auto;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+      z-index: 50;
+    }
+
+    .sidebar-top {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .btn-toggle {
+      background: rgba(46, 125, 50, 0.06);
+      color: var(--primary);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+    .btn-toggle:hover { background: rgba(46, 125, 50, 0.12); }
+
+    .sidebar nav ul {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: transparent;
+      border: 0;
+      padding: 11px 14px;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 700;
+      color: #4b5563;
+      width: 100%;
+      transition: all 0.2s ease;
+      position: relative;
+      white-space: nowrap;
+    }
+    .side-link:hover {
+      background: rgba(46, 125, 50, 0.05);
+      color: var(--primary);
+    }
+
+    .side-link[aria-selected="true"] {
+      background: linear-gradient(90deg, rgba(46, 125, 50, 0.08), rgba(255, 255, 255, 0.01));
+      color: var(--primary);
+    }
+    .side-link[aria-selected="true"]::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      height: 60%;
+      width: 4px;
+      background: var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .sidebar-footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    /* ======= ESTILOS EXTRAS DA TELA INICIAL & PERFIL ======= */
+    .welcome-box {
+      background: linear-gradient(135deg, rgba(46, 125, 50, 0.05), rgba(245, 124, 0, 0.05));
+      border: 1px solid #eef4fb;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .info-profile-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .info-profile-list li {
+      padding: 12px;
+      background: #f9fbfd;
+      border: 1px solid #eef4fb;
+      border-radius: 8px;
+    }
+
+    /* ======= COMPORTAMENTO COMPACTO (.collapsed) ======= */
+    @media(min-width: 981px) {
+      .sidebar.collapsed { width: 76px; padding: 16px 10px; }
+      .sidebar.collapsed .sidebar-top { justify-content: center; }
+      .sidebar.collapsed .link-text, .sidebar.collapsed .sidebar-footer { display: none; }
+      .sidebar.collapsed .side-link { justify-content: center; padding: 11px 0; }
+      .sidebar.collapsed .side-link[aria-selected="true"]::before { left: 2px; }
+    }
+
+    .content{flex:1;min-width:0}
+    .panel{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px var(--shadow);border-top:4px solid var(--accent)}
+    .panel-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+    .filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .filters input,.filters select{padding:8px;border-radius:10px;border:1px solid #e6eef8}
+
+    .series-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:12px}
+    .series-block{border:1px solid #eef4fb;border-radius:10px;padding:12px;background:linear-gradient(180deg,#fff,#fefefe);margin-bottom:14px;}
+    .series-block h4{margin-bottom:10px;color:var(--primary);border-bottom:2px solid #f0f0f0;padding-bottom:4px;}
+    .grid-livros{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+    
+    .grid-horarios{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px;}
+    .turno{margin-bottom:24px;}
+    .turno h3{border-left:4px solid var(--primary);padding-left:8px;margin-bottom:10px;font-size:1.1rem;}
+
+    .card{background:var(--card);border-radius:10px;padding:10px;border:1px solid #e9f2fb;box-shadow:0 4px 12px var(--shadow);display:flex;flex-direction:column;gap:8px}
+    .card img{width:100%;height:110px;object-fit:cover;border-radius:6px}
+    .card h3{font-size:.95rem;color:var(--primary)}
+    .meta{font-size:.8rem;color:var(--muted)}
+    .status{font-size:0.8rem;font-weight:bold;padding:2px 6px;border-radius:4px;display:inline-block;width:fit-content;}
+    .status.disponivel{background:#e8f5e9;color:#2e7d32;}
+    .status.alugado, .status.reservado{background:#ffebee;color:#c62828;}
+
+    .reservados-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    @media(max-width:768px){ .reservados-grid{grid-template-columns:1fr;} }
+    .box{background:#f9fbfd;border:1px solid #eef4fb;padding:14px;border-radius:8px;}
+    .box h3{margin-bottom:12px;font-size:1rem;color:#333;border-bottom:1px solid #ddd;padding-bottom:4px;}
+
+    /* Modais */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,20,30,0.55);z-index:100;padding:18px}
+    .modal.open, .modal[aria-hidden="false"]{display:flex}
+    .modal-card{background:#fff;padding:24px;border-radius:12px;width:100%;max-width:420px;box-shadow:0 12px 30px rgba(16,24,40,0.25);border:1px solid #eef4fb;display:flex;flex-direction:column;gap:10px}
+    .modal-card h3{font-size:1.4rem;color:var(--primary);margin-bottom:6px;}
+    .modal-card label{font-weight:700;font-size:0.85rem;color:#444;margin-top:4px;}
+    .modal-card input, .modal-card select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-family:inherit;font-size:0.95rem;}
+    .modal-card input:focus, .modal-card select:focus{border-color:var(--primary);outline:none;}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;}
+
+    #toast-container{position:fixed;right:18px;bottom:18px;z-index:120;display:flex;flex-direction:column;gap:8px}
+    .toast{background:rgba(20,20,20,0.95);color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 6px 18px rgba(16,24,40,0.2);font-weight:600}
+
+    @media(max-width:980px){
+      .layout{flex-direction:column}
+      .sidebar{width:100%;height:auto;position:relative;top:0;box-shadow:none;}
+      .sidebar-top{display:none;}
+      .panel{margin-top:12px}
+      .auth-actions{position:static;margin-top:12px}
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="branding" aria-hidden="false">
+      <h1>BIBLIOLAB</h1>
+      <p>Biblioteca & Informática — Gerencie empréstimos e reservas</p>
+    </div>
+
+    <nav class="auth-actions" aria-label="Ações de autenticação">
+      <span id="user-badge" class="user-badge" aria-live="polite">Convidado</span>
+      <button type="button" id="btn-open-login" class="btn ghost" aria-haspopup="dialog">Entrar</button>
+      <button type="button" id="btn-open-signup" class="btn">Cadastrar</button>
+      <button type="button" id="btn-logout" class="btn ghost" style="display:none;">Sair</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="sidebar-top">
+        <button type="button" id="btn-toggle-sidebar" class="btn-toggle" aria-label="Alternar menu">
+          ☰
+        </button>
+      </div>
+
+      <nav aria-label="Navegação principal" role="tablist">
+        <ul style="list-style:none;">
+          <li>
+            <button type="button" id="tab-home" class="side-link" role="tab" aria-controls="home" aria-selected="true" data-aba="home">
+              <span class="icon">🏠</span>
+              <span class="link-text">Início</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="tab-biblioteca" class="side-link" role="tab" aria-controls="biblioteca" aria-selected="false" data-aba="biblioteca">
+              <span class="icon">📚</span>
+              <span class="link-text">Biblioteca</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="tab-laboratorio" class="side-link" role="tab" aria-controls="laboratorio" aria-selected="false" data-aba="laboratorio">
+              <span class="icon">💻</span>
+              <span class="link-text">Laboratório</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="tab-reservados" class="side-link" role="tab" aria-controls="reservados" aria-selected="false" data-aba="reservados">
+              <span class="icon">📋</span>
+              <span class="link-text">Reservados</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="tab-usuarios" class="side-link" role="tab" aria-controls="usuarios" aria-selected="false" data-aba="usuarios">
+              <span class="icon">👥</span>
+              <span class="link-text">Usuários</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="tab-perfil" class="side-link" role="tab" aria-controls="perfil" aria-selected="false" data-aba="perfil">
+              <span class="icon">👤</span>
+              <span class="link-text">Minha Conta</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <footer class="sidebar-footer">
+        <small style="color: #374151;">Usuário: <strong id="sidebar-usuario" style="color: var(--primary);">Convidado</strong></small>
+        <p id="catalogo-contagem" style="font-size:0.8rem; margin-top:4px; color: var(--muted);">Livros no catálogo: —</p>
+      </footer>
+    </aside>
+
+    <main class="content" role="main">
+      <section id="home" class="tab-content active" role="tabpanel" aria-labelledby="tab-home" aria-hidden="false">
+        <div class="panel">
+          <div class="welcome-box">
+            <h2>Olá! Seja bem-vindo ao BIBLIOLAB 👋</h2>
+            <p style="margin-top: 6px; color: #374151;">Seu ecossistema integrado para agendamento de computadores no Laboratório de Informática e reserva de livros didáticos ou literários.</p>
+          </div>
+
+          <h3 style="color: var(--primary); margin-bottom: 12px;">Atividades Rápidas</h3>
+          <div class="dashboard-grid">
+            <div class="box" style="display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+              <div>
+                <h4 style="color:var(--primary)">📚 Acervo de Livros</h4>
+                <p class="muted" style="font-size:0.85rem; margin-top:4px;">Consulte títulos, veja a disponibilidade por séries e realize empréstimos.</p>
+              </div>
+              <button type="button" class="btn" onclick="document.getElementById('tab-biblioteca').click()" style="width:fit-content; font-size:0.85rem;">Ir para Biblioteca</button>
+            </div>
+
+            <div class="box" style="display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+              <div>
+                <h4 style="color:var(--accent)">💻 Laboratório</h4>
+                <p class="muted" style="font-size:0.85rem; margin-top:4px;">Professores podem planejar e agendar aulas nos horários vagos dos turnos.</p>
+              </div>
+              <button type="button" class="btn" onclick="document.getElementById('tab-laboratorio').click()" style="width:fit-content; font-size:0.85rem; background:var(--accent)">Agendar Horários</button>
+            </div>
+
+            <div class="box" style="display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+              <div>
+                <h4>📋 Painel Geral</h4>
+                <p class="muted" style="font-size:0.85rem; margin-top:4px;">Veja a lista em tempo real de quem está com livros alugados e horários reservados.</p>
+              </div>
+              <button type="button" class="btn ghost" onclick="document.getElementById('tab-reservados').click()" style="width:fit-content; font-size:0.85rem;">Ver Reservas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="biblioteca" class="tab-content" role="tabpanel" aria-labelledby="tab-biblioteca" aria-hidden="true">
+        <div class="panel">
+          <header class="panel-header">
+            <h2 id="titulo-biblioteca">Livros Disponíveis</h2>
+            <div class="filters">
+              <select id="filtro-serie" aria-label="Filtrar por série">
+                <option value="all">Todas as séries</option>
+                <option value="6º Ano">6º Ano</option>
+                <option value="7º Ano">7º Ano</option>
+                <option value="8º Ano">8º Ano</option>
+                <option value="9º Ano">9º Ano</option>
+                <option value="1º EM">1º EM</option>
+                <option value="2º EM">2º EM</option>
+                <option value="3º EM">3º EM</option>
+              </select>
+              <input id="busca-livro" placeholder="Pesquisar título, autor ou palavra-chave" aria-label="Pesquisar livros" />
+            </div>
+          </header>
+          <div class="series-grid" id="series-grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="laboratorio" class="tab-content" role="tabpanel" aria-labelledby="tab-laboratorio" aria-hidden="true">
+        <div class="panel">
+          <header class="panel-header">
+            <div>
+              <h2 id="titulo-laboratorio">Reservas do Laboratório</h2>
+              <p class="muted" style="font-size:0.9rem; margin-top:4px;">Clique em um bloco disponível para reservar (professores) — de Segunda a Sexta.</p>
+            </div>
+          </header>
+
+          <div class="turnos">
+            <article class="turno" id="turno-manha">
+              <h3>Matutino (07:30 - 11:55)</h3>
+              <div class="grid-horarios" id="grid-manha"></div>
+            </article>
+
+            <article class="turno" id="turno-tarde">
+              <h3>Vespertino (13:00 - 17:30)</h3>
+              <div class="grid-horarios" id="grid-tarde"></div>
+            </article>
+
+            <article class="turno" id="turno-noite">
+              <h3>Noturno (18:30 - 22:45)</h3>
+              <div class="grid-horarios" id="grid-noite"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="reservados" class="tab-content" role="tabpanel" aria-labelledby="tab-reservados" aria-hidden="true">
+        <div class="panel">
+          <header class="panel-header">
+            <h2 id="titulo-reservados">Painel de Reservas Ativas</h2>
+          </header>
+
+          <div class="reservados-grid">
+            <div class="box">
+              <h3>Livros Reservados / Alugados</h3>
+              <div id="lista-livros-alugados" class="grid-livros"></div>
+            </div>
+
+            <div class="box">
+              <h3>Reservas do Laboratório por Dia</h3>
+              <div id="lista-reservas-por-dia"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="usuarios" class="tab-content" role="tabpanel" aria-labelledby="tab-usuarios" aria-hidden="true">
+        <div class="panel">
+          <header class="panel-header">
+            <div>
+              <h2 id="titulo-usuarios">Usuários Cadastrados</h2>
+              <p class="muted" style="font-size:0.9rem;">Lista rápida de alunos e professores registrados no sistema.</p>
+            </div>
+            <div id="admin-actions" style="display:none; gap:10px;">
+              <button type="button" id="btn-open-add-user" class="btn">Adicionar Usuário</button>
+              <button type="button" id="btn-open-add-prof" class="btn">Adicionar Professor</button>
+            </div>
+          </header>
+
+          <div class="reservados-grid">
+            <div class="box">
+              <h3>Professores Cadastrados</h3>
+              <div id="lista-professores" class="grid-livros"></div>
+            </div>
+
+            <div class="box">
+              <h3>Alunos e Outros Usuários</h3>
+              <div id="lista-usuarios" class="grid-livros"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="perfil" class="tab-content" role="tabpanel" aria-labelledby="tab-perfil" aria-hidden="true">
+        <div class="panel">
+          <header class="panel-header">
+            <h2>Minha Conta</h2>
+          </header>
+          
+          <div class="box" style="max-width: 600px;">
+            <h3>Dados Cadastrais</h3>
+            <ul class="info-profile-list">
+              <li>Nome: <strong id="perfil-nome" style="color:var(--primary)">Convidado</strong></li>
+              <li>Email de Acesso: <span id="perfil-email" class="muted">Não autenticado</span></li>
+              <li>Nível de Permissão: <span id="perfil-nivel" class="status disponivel" style="font-size:0.75rem; margin-left:6px;">Visitante</span></li>
+            </ul>
+            <p class="muted" style="font-size: 0.8rem; margin-top: 14px;">*Para alterar seus dados de acesso ou permissões, entre em contato com a equipe de administração da escola.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="modal-login" aria-hidden="true" role="dialog" aria-labelledby="titulo-login">
+    <div class="modal-card">
+      <h3 id="titulo-login">Entrar no Sistema</h3>
+      <label for="login-email">Email</label>
+      <input id="login-email" type="email" autocomplete="username" placeholder="exemplo@escola.local" />
+      <label for="login-senha">Senha</label>
+      <input id="login-senha" type="password" autocomplete="current-password" placeholder="Sua senha" />
+      <div class="modal-actions">
+        <button type="button" id="btn-login-confirm" class="btn">Entrar</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+      <p class="small" style="font-size:0.8rem; color:var(--muted)">Admin Padrão: <strong>admin@escola.local</strong> / <strong>admin123</strong></p>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-signup" aria-hidden="true" role="dialog" aria-labelledby="titulo-signup">
+    <div class="modal-card">
+      <h3 id="titulo-signup">Criar Conta</h3>
+      <label for="signup-nome">Nome Completo</label>
+      <input id="signup-nome" type="text" placeholder="Digite seu nome" />
+      <label for="signup-email">Email</label>
+      <input id="signup-email" type="email" placeholder="seuemail@provedor.com" />
+      <label for="signup-senha">Senha</label>
+      <input id="signup-senha" type="password" placeholder="Crie uma senha estável" />
+      <label for="signup-tipo">Você é:</label>
+      <select id="signup-tipo">
+        <option value="aluno">Aluno</option>
+        <option value="professor">Professor</option>
+      </select>
+      <div class="modal-actions">
+        <button type="button" onclick="signupConfirm()" class="btn">Cadastrar</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-alugar" aria-hidden="true" role="dialog" aria-labelledby="titulo-alugar">
+    <div class="modal-card">
+      <h3 id="titulo-alugar">Reservar este Livro</h3>
+      <p id="alugar-livro-info" style="font-weight:bold; color:var(--primary); font-size:0.95rem;"></p>
+      
+      <label for="alugar-nome">Nome do Aluno / Locatário</label>
+      <input id="alugar-nome" type="text" placeholder="Quem vai levar o livro?" />
+      
+      <label for="alugar-turma">Turma / Ano Escolar</label>
+      <input id="alugar-turma" type="text" placeholder="Ex: 6º Ano A, 2º EM B" />
+      
+      <div class="modal-actions">
+        <button type="button" id="btn-confirmar-aluguel" class="btn">Confirmar Empréstimo</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-reserva" aria-hidden="true" role="dialog" aria-labelledby="titulo-reserva">
+    <div class="modal-card">
+      <h3 id="titulo-reserva">Agendar Laboratório</h3>
+      <p id="reserva-slot-info" style="font-weight:bold; color:var(--accent); font-size:0.95rem;"></p>
+      
+      <label for="reserva-professor">Nome do Professor Responsável</label>
+      <input id="reserva-professor" type="text" placeholder="Nome do docente" />
+      
+      <label for="reserva-dia">Dia da Semana Escolhido</label>
+      <select id="reserva-dia">
+        <option value="">Selecione o dia...</option>
+        <option value="Segunda">Segunda-feira</option>
+        <option value="Terça">Terça-feira</option>
+        <option value="Quarta">Quarta-feira</option>
+        <option value="Quinta">Quinta-feira</option>
+        <option value="Sexta">Sexta-feira</option>
+      </select>
+      
+      <div class="modal-actions">
+        <button type="button" id="btn-confirmar-reserva" class="btn">Confirmar Horário</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-add-user" aria-hidden="true" role="dialog" aria-labelledby="titulo-add-user">
+    <div class="modal-card">
+      <h3 id="titulo-add-user">Novo Usuário (Painel Admin)</h3>
+      <label for="adduser-nome">Nome</label>
+      <input id="adduser-nome" type="text" placeholder="Nome completo" />
+      <label for="adduser-email">Email</label>
+      <input id="adduser-email" type="email" placeholder="email@escola.local" />
+      <label for="adduser-senha">Senha Provisória</label>
+      <input id="adduser-senha" type="password" placeholder="Senha provisória" />
+      <label for="adduser-tipo">Nível de Permissão</label>
+      <select id="adduser-tipo">
+        <option value="aluno">Aluno</option>
+        <option value="professor">Professor</option>
+        <option value="administrador">Administrador</option>
+      </select>
+      <div class="modal-actions">
+        <button type="button" onclick="addUserConfirm()" class="btn">Adicionar</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-add-prof" aria-hidden="true" role="dialog" aria-labelledby="titulo-add-prof">
+    <div class="modal-card">
+      <h3 id="titulo-add-prof">Cadastrar Novo Professor</h3>
+      <label for="add-nome">Nome do Professor</label>
+      <input id="add-nome" type="text" placeholder="Prof. Nome Sobrenome" />
+      <label for="add-email">Email Corporativo</label>
+      <input id="add-email" type="email" placeholder="nome.sobrenome@escola.local" />
+      <label for="add-senha">Senha Padrão de Acesso</label>
+      <input id="add-senha" type="password" placeholder="Senha inicial" />
+      <div class="modal-actions">
+        <button type="button" onclick="addProfessorConfirm()" class="btn">Cadastrar Professor</button>
+        <button type="button" class="btn ghost btn-fechar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" aria-hidden="true"></div>
+
+  <script>
+    (function () {
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('btn-toggle-sidebar');
+      const sideLinks = Array.from(document.querySelectorAll('.side-link'));
+      const tabContents = Array.from(document.querySelectorAll('.tab-content'));
+
+      // 1. Alternador de Abas Resiliente
+      function activateTab(targetId, focusButton = true) {
+        if (!targetId) return;
+
+        sideLinks.forEach(btn => {
+          const aba = btn.dataset.aba;
+          const selected = (aba === targetId);
+          btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+          if (selected && focusButton) btn.focus({preventScroll:true});
+        });
+
+        tabContents.forEach(sec => {
+          const isActive = sec.id === targetId;
+          sec.classList.toggle('active', isActive);
+          sec.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+
+        // Dispara evento para sincronizar com o script.js externo
+        document.dispatchEvent(new CustomEvent('abaAtivada', { detail: { aba: targetId } }));
+      }
+
+      // 2. Event Listeners de Clique e Teclado
+      sideLinks.forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          if(btn.dataset.aba) activateTab(btn.dataset.aba);
+        });
+
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            sideLinks[(idx + 1) % sideLinks.length].click();
+          } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            sideLinks[(idx - 1 + sideLinks.length) % sideLinks.length].click();
+          }
+        });
+      });
+
+      // 3. Mecanismo de Toggle Expandir/Recolher Seguro
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle('collapsed');
+        });
+      }
+
+      // 4. Inicialização Segura da Primeira Aba
+      const initial = sideLinks.find(b => b.getAttribute('aria-selected') === 'true') || sideLinks[0];
+      if (initial && initial.dataset.aba) {
+        activateTab(initial.dataset.aba, false);
+      }
+    })();
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>
